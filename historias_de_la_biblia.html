@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historias de la Biblia - Aplicación Interactiva</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800;900&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        parchment: {
+                            50: '#FCF9F2',
+                            100: '#F7F2E6',
+                            200: '#EFE5D0',
+                            300: '#E1D2B3',
+                            400: '#CDB78F',
+                            700: '#6B5433',
+                            800: '#4A3920',
+                            900: '#2C2010'
+                        },
+                        bibleGold: {
+                            400: '#E5A93C',
+                            500: '#C68A2C',
+                            600: '#A06B1B',
+                            700: '#8C5D18',
+                            800: '#68420D'
+                        },
+                        bibleBlue: {
+                            700: '#2C5282',
+                            800: '#1A365D',
+                            900: '#0F2442'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Cinzel', 'serif'],
+                        body: ['Lora', 'serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #F7F2E6;
+            background-image: 
+                radial-gradient(#E1D2B3 1.2px, transparent 1.2px), 
+                radial-gradient(#E1D2B3 1.2px, #F7F2E6 1.2px);
+            background-size: 24px 24px;
+            background-position: 0 0, 12px 12px;
+        }
+
+        .gold-glow {
+            box-shadow: 0 0 25px rgba(198, 138, 44, 0.35);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #EFE5D0;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #C68A2C;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #A06B1B;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); box-shadow: 0 10px 25px -5px rgba(198, 138, 44, 0.4); }
+            50% { transform: scale(1.02); box-shadow: 0 15px 35px -5px rgba(198, 138, 44, 0.7); }
+        }
+
+        .animate-start-btn {
+            animation: pulseGlow 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="text-parchment-900 font-sans min-h-full flex flex-col justify-between antialiased selection:bg-bibleGold-500 selection:text-white">
+
+    <!-- Drawer Overlay -->
+    <div id="sidebar-backdrop" onclick="toggleMenu()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden transition-opacity duration-300 opacity-0"></div>
+
+    <!-- Sidebar Navigation Drawer -->
+    <aside id="sidebar" class="fixed top-0 left-0 h-full w-80 bg-parchment-100 border-r-2 border-bibleGold-500/40 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out shadow-2xl flex flex-col">
+        <!-- Sidebar Header -->
+        <div class="p-6 bg-parchment-200 border-b border-parchment-300 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-bibleGold-500 text-white flex items-center justify-center font-serif font-bold text-xl shadow-md">
+                    <i class="fa-solid fa-book-bible"></i>
+                </div>
+                <div>
+                    <h2 class="font-serif font-bold text-bibleGold-700 text-lg leading-tight">Historias Sagradas</h2>
+                    <p class="text-xs text-parchment-700">Navegación Bíblica</p>
+                </div>
+            </div>
+            <button onclick="toggleMenu()" class="text-parchment-800 hover:text-bibleGold-600 text-2xl p-1 rounded-lg focus:outline-none">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Sidebar Items -->
+        <nav class="p-4 flex-1 space-y-2 overflow-y-auto custom-scrollbar">
+            <a href="#" onclick="toggleMenu(); return false;" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-bibleGold-500/15 text-bibleGold-700 font-semibold border border-bibleGold-500/30">
+                <i class="fa-solid fa-house w-5"></i>
+                <span>Inicio / Historias</span>
+            </a>
+            <button onclick="openGlobalQuiz(); toggleMenu();" class="w-full text-left flex items-center space-x-3 px-4 py-3 rounded-xl text-parchment-800 hover:bg-parchment-200 transition-colors">
+                <i class="fa-solid fa-graduation-cap w-5 text-bibleGold-600"></i>
+                <span>Cuestionario Global</span>
+            </button>
+            <button onclick="openAboutModal(); toggleMenu();" class="w-full text-left flex items-center space-x-3 px-4 py-3 rounded-xl text-parchment-800 hover:bg-parchment-200 transition-colors">
+                <i class="fa-solid fa-circle-info w-5 text-bibleGold-600"></i>
+                <span>Acerca de la App</span>
+            </button>
+
+            <div class="pt-6 border-t border-parchment-300">
+                <p class="px-4 text-xs font-bold text-parchment-700 uppercase tracking-wider mb-2">Administrar Progreso</p>
+                <button onclick="confirmResetProgress()" class="w-full text-left flex items-center space-x-3 px-4 py-3 rounded-xl text-red-700 hover:bg-red-100/50 transition-colors">
+                    <i class="fa-solid fa-rotate-right w-5"></i>
+                    <span>Reiniciar Progreso</span>
+                </button>
+            </div>
+        </nav>
+
+        <div class="p-4 bg-parchment-200/60 border-t border-parchment-300 text-center text-xs text-parchment-700">
+            <p class="font-serif">"Tu palabra es una lámpara a mis pies"</p>
+            <p class="text-[10px] text-parchment-700 mt-0.5">Salmos 119:105</p>
+        </div>
+    </aside>
+
+    <!-- Navigation Header -->
+    <header class="bg-parchment-100/90 backdrop-blur-md border-b-2 border-bibleGold-500/30 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <button onclick="toggleMenu()" class="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-parchment-200 text-bibleGold-700 hover:bg-bibleGold-500 hover:text-white transition-all shadow-sm border border-bibleGold-500/30 font-serif font-bold text-sm">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                    <span class="hidden sm:inline">☰ Menú</span>
+                </button>
+
+                <div class="flex items-center space-x-2.5">
+                    <i class="fa-solid fa-scroll text-bibleGold-600 text-2xl hidden sm:inline-block"></i>
+                    <span class="font-serif text-xl sm:text-2xl font-black tracking-tight text-parchment-900">
+                        Historias de la Biblia
+                    </span>
+                </div>
+            </div>
+
+            <!-- Progress Badge -->
+            <div class="flex items-center space-x-2 bg-parchment-200/90 px-3.5 py-1.5 rounded-full border border-bibleGold-500/30 text-xs sm:text-sm font-medium shadow-sm">
+                <i class="fa-solid fa-star text-bibleGold-500"></i>
+                <span id="header-progress-text" class="text-bibleGold-700 font-bold">1 / 5</span>
+                <span class="text-parchment-700 hidden sm:inline">Capítulos</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Application Container -->
+    <main class="max-w-5xl mx-auto px-4 py-8 sm:py-10 flex-1 w-full flex flex-col justify-center">
+
+        <!-- Banner / Welcome Message -->
+        <section class="text-center mb-8 sm:mb-10">
+            <h1 class="font-serif text-3xl sm:text-5xl font-black text-bibleGold-700 mb-3 tracking-tight drop-shadow-sm">
+                Historias de la Biblia
+            </h1>
+            <p class="max-w-2xl mx-auto text-base sm:text-lg font-body text-parchment-800 leading-relaxed italic bg-parchment-100/80 p-5 rounded-2xl border-2 border-bibleGold-500/30 shadow-sm">
+                "Bienvenidos a esta página donde conocerán algunas de las historias más importantes y fascinantes de la Biblia..."
+            </p>
+        </section>
+
+        <!-- 2 Column Sketch Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch mb-8">
+
+            <!-- LEFT COLUMN: Primary Buttons & Featured Banner -->
+            <div class="md:col-span-5 flex flex-col justify-between bg-gradient-to-b from-parchment-100 to-parchment-200/90 p-6 sm:p-8 rounded-3xl border-2 border-bibleGold-500/40 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 opacity-10 text-bibleGold-700 pointer-events-none">
+                    <i class="fa-solid fa-book-open text-[160px]"></i>
+                </div>
+
+                <div class="text-center mb-6 relative z-10">
+                    <span class="inline-block px-3.5 py-1 bg-bibleGold-500/20 text-bibleGold-800 text-xs font-serif font-bold uppercase tracking-wider rounded-full mb-3 border border-bibleGold-500/30">
+                        Capítulo Actual
+                    </span>
+                    <h3 id="hero-story-title" class="font-serif text-2xl sm:text-3xl font-extrabold text-parchment-900 leading-tight">
+                        La Creación
+                    </h3>
+                    <p id="hero-story-status" class="text-sm text-bibleGold-700 font-medium mt-2 flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-circle-play text-bibleGold-500"></i> Listo para comenzar
+                    </p>
+                </div>
+
+                <!-- Main Action Buttons -->
+                <div class="space-y-4 relative z-10">
+                    <!-- Big Button 'Iniciar Historia' -->
+                    <button onclick="startActiveStory()" class="animate-start-btn w-full py-5 px-6 bg-gradient-to-r from-bibleBlue-700 via-bibleBlue-800 to-bibleBlue-900 hover:from-bibleBlue-800 hover:to-bibleBlue-900 text-white font-serif font-bold text-xl sm:text-2xl rounded-2xl shadow-xl transform hover:-translate-y-1 active:translate-y-0 transition-all duration-200 flex items-center justify-center space-x-3 border-2 border-bibleGold-400">
+                        <i class="fa-solid fa-book-open text-amber-400 text-2xl"></i>
+                        <span>Iniciar Historia</span>
+                    </button>
+
+                    <!-- Secondary Button 'Cuestionario de Aprendizaje' -->
+                    <button onclick="openGlobalQuiz()" class="w-full py-3.5 px-4 bg-parchment-50 hover:bg-parchment-200 text-bibleGold-800 font-serif font-bold text-sm sm:text-base rounded-xl border-2 border-bibleGold-500/50 shadow-sm transition-all flex items-center justify-center space-x-2 hover:shadow-md">
+                        <i class="fa-solid fa-pen-ruler text-bibleGold-600"></i>
+                        <span>📝 Cuestionario de Aprendizaje</span>
+                    </button>
+                </div>
+
+                <p class="text-xs text-center text-parchment-700 mt-6 relative z-10 font-body">
+                    Abre el lector interactivo para sumergirte en el texto sagrado.
+                </p>
+            </div>
+
+            <!-- RIGHT COLUMN: Story List (Interactive Selection) -->
+            <div class="md:col-span-7 bg-parchment-100 p-6 sm:p-8 rounded-3xl border-2 border-bibleGold-500/40 shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-5 pb-3 border-b-2 border-bibleGold-500/20">
+                        <h2 class="font-serif text-xl sm:text-2xl font-bold text-parchment-900 flex items-center gap-2.5">
+                            <i class="fa-solid fa-list-check text-bibleGold-600"></i>
+                            Selecciona una Historia
+                        </h2>
+                        <span class="text-xs font-serif font-bold text-bibleGold-800 bg-bibleGold-500/20 px-3 py-1 rounded-full border border-bibleGold-500/30">
+                            Capítulos 1 - 5
+                        </span>
+                    </div>
+
+                    <!-- Chapters Container -->
+                    <div id="stories-list" class="space-y-3">
+                        <!-- Populated dynamically with JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM NOTE BOX (Faithful to drawing) -->
+        <div class="bg-parchment-100 border-2 border-dashed border-bibleGold-500/60 p-5 rounded-2xl shadow-sm max-w-3xl mx-auto flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-2xl bg-bibleGold-500/20 flex items-center justify-center text-bibleGold-700 text-2xl flex-shrink-0 border border-bibleGold-500/30">
+                <i class="fa-solid fa-circle-info"></i>
+            </div>
+            <p class="font-serif text-sm sm:text-base font-bold text-bibleGold-800 leading-snug">
+                Nota: deberás leer las historias en orden para poder desbloquear la siguiente!!
+            </p>
+        </div>
+
+    </main>
+
+    <!-- STORY READER MODAL -->
+    <div id="reader-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6 transition-opacity duration-300 opacity-0">
+        <div class="bg-parchment-50 border-2 border-bibleGold-500 w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] transform scale-95 transition-transform duration-300" id="reader-container">
+            
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-bibleGold-700 to-bibleGold-800 text-white p-5 sm:p-6 flex items-center justify-between border-b-2 border-bibleGold-600 shadow-md">
+                <div class="flex items-center space-x-3.5">
+                    <div id="reader-symbol" class="w-10 h-10 rounded-xl bg-bibleGold-600 flex items-center justify-center font-bold text-xl shadow-inner text-amber-200 border border-bibleGold-400">
+                        ★
+                    </div>
+                    <div>
+                        <h3 id="reader-title" class="font-serif text-xl sm:text-2xl font-extrabold tracking-tight">Título de la Historia</h3>
+                        <p id="reader-subtitle" class="text-xs text-amber-100 font-sans">Pasaje Bíblico Iluminado</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('reader-modal')" class="text-white hover:text-amber-200 text-2xl p-1.5 rounded-xl hover:bg-white/10 transition-colors focus:outline-none">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Story Text Body -->
+            <div id="reader-body" class="p-6 sm:p-10 overflow-y-auto custom-scrollbar font-body text-base sm:text-lg text-parchment-900 leading-relaxed space-y-6">
+                <!-- Injected via JavaScript -->
+            </div>
+
+            <!-- Modal Footer Controls -->
+            <div class="p-4 sm:p-6 bg-parchment-100 border-t-2 border-parchment-300 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <p class="text-xs text-parchment-700 italic text-center sm:text-left font-body">
+                    Lee el pasaje completo para completar la lección y desbloquear el siguiente capítulo.
+                </p>
+                <div class="flex items-center space-x-3 w-full sm:w-auto">
+                    <button onclick="openQuizFromReader()" class="flex-1 sm:flex-none px-5 py-2.5 bg-bibleGold-500/20 hover:bg-bibleGold-500/30 text-bibleGold-800 font-serif font-bold rounded-xl text-sm transition-colors border border-bibleGold-500/40 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span>Quiz del Capítulo</span>
+                    </button>
+                    <button id="complete-btn" onclick="completeAndUnlockNext()" class="flex-1 sm:flex-none px-6 py-2.5 bg-gradient-to-r from-bibleGold-600 to-bibleGold-700 hover:from-bibleGold-700 hover:to-bibleGold-800 text-white font-serif font-bold rounded-xl text-sm shadow-md transition-all flex items-center justify-center space-x-2 border border-bibleGold-500">
+                        <span>Completar Lectura ✓</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MINI-QUIZ INTERACTIVE MODAL -->
+    <div id="quiz-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6 transition-opacity duration-300 opacity-0">
+        <div class="bg-parchment-50 border-2 border-bibleGold-500 w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" id="quiz-container">
+            
+            <!-- Quiz Header -->
+            <div class="bg-bibleBlue-800 text-white p-5 sm:p-6 flex items-center justify-between border-b-2 border-bibleGold-500">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-bibleBlue-700 flex items-center justify-center font-bold text-lg text-amber-400 border border-bibleGold-500/40">
+                        <i class="fa-solid fa-clipboard-question"></i>
+                    </div>
+                    <div>
+                        <h3 id="quiz-header-title" class="font-serif text-xl sm:text-2xl font-bold">Cuestionario Bíblico</h3>
+                        <p class="text-xs text-amber-200">Demuestra tus conocimientos</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('quiz-modal')" class="text-white hover:text-amber-200 text-2xl p-1.5 rounded-xl hover:bg-white/10 transition-colors focus:outline-none">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Quiz Content Body -->
+            <div id="quiz-body" class="p-6 sm:p-8 overflow-y-auto custom-scrollbar flex-1 space-y-6">
+                <!-- Rendered dynamically -->
+            </div>
+
+            <!-- Quiz Footer Controls -->
+            <div class="p-4 sm:p-6 bg-parchment-100 border-t border-parchment-300 flex items-center justify-between">
+                <div id="quiz-score-badge" class="text-xs font-serif font-bold text-bibleGold-800 bg-bibleGold-500/20 px-3 py-1.5 rounded-lg border border-bibleGold-500/30">
+                    Progreso: Respuestas Respondidas
+                </div>
+                <button onclick="closeModal('quiz-modal')" class="px-6 py-2.5 bg-parchment-300 hover:bg-parchment-400 text-parchment-900 font-serif font-bold rounded-xl text-sm transition-colors">
+                    Cerrar Cuestionario
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 pointer-events-none space-y-3 max-w-sm w-full px-4 sm:px-0"></div>
+
+    <!-- CONFIRMATION / RESET DIALOG MODAL -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-parchment-50 border-2 border-bibleGold-500 w-full max-w-md rounded-2xl p-6 shadow-2xl text-center space-y-4">
+            <div class="w-14 h-14 bg-red-100 text-red-700 rounded-full flex items-center justify-center mx-auto text-2xl border border-red-300">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="font-serif text-2xl font-bold text-parchment-900">¿Reiniciar Progreso?</h3>
+            <p class="text-sm text-parchment-700 font-body leading-relaxed">
+                Esta acción se borrará todo tu avance guardado y volverás a bloquear los capítulos posteriores al primero.
+            </p>
+            <div class="flex items-center justify-center space-x-3 pt-2">
+                <button onclick="closeModal('confirm-modal')" class="px-5 py-2.5 bg-parchment-200 hover:bg-parchment-300 text-parchment-800 font-semibold rounded-xl text-sm">
+                    Cancelar
+                </button>
+                <button onclick="executeResetProgress()" class="px-5 py-2.5 bg-red-700 hover:bg-red-800 text-white font-serif font-bold rounded-xl text-sm shadow-md">
+                    Sí, Reiniciar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ABOUT APP MODAL -->
+    <div id="about-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-parchment-50 border-2 border-bibleGold-500 w-full max-w-md rounded-3xl p-6 shadow-2xl text-center space-y-4">
+            <div class="w-16 h-16 bg-bibleGold-500/20 text-bibleGold-700 rounded-2xl flex items-center justify-center mx-auto text-3xl border border-bibleGold-500/40">
+                <i class="fa-solid fa-book-bible"></i>
+            </div>
+            <h3 class="font-serif text-2xl font-black text-parchment-900">Historias de la Biblia</h3>
+            <p class="text-sm text-parchment-800 font-body leading-relaxed">
+                Una experiencia interactiva diseñada para explorar, leer y aprender las Sagradas Escrituras a través de una secuencia pedagógica con relatos detallados y cuestionarios evaluativos.
+            </p>
+            <button onclick="closeModal('about-modal')" class="w-full py-3 bg-bibleGold-600 hover:bg-bibleGold-700 text-white font-serif font-bold rounded-xl shadow transition-colors">
+                Entendido
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const BIBLE_STORIES = [
+            {
+                id: 1,
+                title: "La Creación",
+                reference: "Génesis 1:1 - 2:3",
+                symbol: "★",
+                unlocked: true,
+                completed: false,
+                summary: "En el principio creó Dios los cielos y la tierra, ordenando el caos en siete días gloriosos...",
+                content: `
+                    <div class="p-4 bg-bibleGold-500/10 rounded-2xl border-l-4 border-bibleGold-500 mb-6 font-serif text-sm sm:text-base italic text-bibleGold-800">
+                        "En el principio creó Dios los cielos y la tierra. Y la tierra estaba desordenada y vacía, y las tinieblas estaban sobre la faz del abismo, y el Espíritu de Dios se movía sobre la faz de las aguas."
+                    </div>
+
+                    <h4 class="font-serif font-bold text-xl text-bibleBlue-800 border-b border-parchment-300 pb-2">1. La Formación del Espacio y el Orden Divino</h4>
+                    <p>En el <strong>Primer Día</strong>, Dios pronunció la palabra eterna: <em>«Sea la luz»</em>, y la luz se separó de las tinieblas, dando origen al día y a la noche. En el <strong>Segundo Día</strong>, Dios hizo el firmamento, dividiendo las aguas que estaban debajo del firmamento de las aguas que estaban sobre el firmamento, llamando al firmamento «Cielos».</p>
+                    <p>En el <strong>Tercer Día</strong>, las aguas debajo de los cielos se juntaron en un solo lugar y apareció la tierra seca. Dios llamó a la parte seca «Tierra» y a la reunión de las aguas «Mares». Y dijo Dios: <em>«Produzca la tierra hierba verde, hierba que dé semilla; árbol de fruto que dé fruto según su género»</em>, y así sucedió.</p>
+
+                    <h4 class="font-serif font-bold text-xl text-bibleBlue-800 border-b border-parchment-300 pb-2 pt-2">2. Las Lumbreras y los Seres Vivientes</h4>
+                    <p>En el <strong>Cuarto Día</strong>, Dios creó las grandes lumbreras: el Sol para señorear en el día, la Luna para señorear en la noche, y las estrellas, para que sirvieran de señales para las estaciones, días y años.</p>
+                    <p>En el <strong>Quinto Día</strong>, Dios dijo: <em>«Produzcan las aguas seres vivientes, y aves que vuelen sobre la tierra»</em>. Dios los bendijo diciendo que se multiplicaran en los mares y en los cielos.</p>
+
+                    <h4 class="font-serif font-bold text-xl text-bibleBlue-800 border-b border-parchment-300 pb-2 pt-2">3. La Corona de la Creación y el Reposo Holy</h4>
+                    <p>En el <strong>Sexto Día</strong>, Dios creó los animales terrestres de toda especie. Y finalmente dijo: <em>«Hagamos al hombre a nuestra imagen, conforme a nuestra semejanza; y señoree en los peces del mar, en las aves de los cielos, en las bestias...»</em>. Creó Dios al hombre del polvo de la tierra y formó a la mujer de su costado, bendiciéndolos para ser administradores de la creación.</p>
+                    <p>Y en el <strong>Séptimo Día</strong>, viendo Dios que todo lo hecho era bueno en gran manera, reposó de toda la obra que había realizado, santificando ese día bendito.</p>
+                `,
+                quiz: [
+                    {
+                        question: "¿Qué creó Dios en el primer día de la creación?",
+                        options: ["El Sol y la Luna", "La luz y la separación de las tinieblas", "Los animales y el ser humano", "Las aves y los peces"],
+                        correct: 1,
+                        explanation: "En Génesis 1:3-5, Dios dijo 'Sea la luz' y separó la luz de las tinieblas en el primer día."
+                    },
+                    {
+                        question: "¿En qué día reposó Dios de toda la obra que había hecho?",
+                        options: ["En el quinto día", "En el sexto día", "En el séptimo día", "En el octavo día"],
+                        correct: 2,
+                        explanation: "Génesis 2:2-3 enseña que Dios bendijo y santificó el séptimo día como día de reposo."
+                    }
+                ]
+            },
+            {
+                id: 2,
+                title: "El Arca de Noé y el Diluvio",
+                reference: "Génesis 6:1 - 9:17",
+                symbol: "🔒",
+                unlocked: false,
+                completed: false,
+                summary: "La corrupción en la tierra, la edificación del arca de madera de gofer, los 40 días de lluvia y el arcoíris...",
+                content: `
+                    <div class="p-4 bg-bibleGold-500/10 rounded-2xl border-l-4 border-bibleGold-500 mb-6 font-serif text-sm sm:text-base italic text-bibleGold-800">
+                        "Pero Noé halló gracia ante los ojos de Jehová... Noé, varón justo, era perfecto en sus generaciones; con Dios caminó Noé."
+                    </div>
+
+                    <h4 class="font-serif font-bold text-xl text-bibleBlue-800 border-b border-parchment-300 pb-2">1. La Maldad del Mundo y el Plano Divino</h4>
+                    <p>Con el paso de los siglos, la humanidad se multiplicó, pero también creció la maldad sobre la tierra. Los pensamientos del corazón humano eran de continuo al mal. Sin embargo, Noé halló gracia ante el Señor por ser un hombre justo y fiel.</p>
+                    <p>Dios advirtió a Noé que purificaría la tierra mediante un diluvio y le ordenó construir una enorme arca de madera de gofer. La nave debía medir 300 codos de largo, 50 de ancho y 30 de alto, dividida en tres pisos con aposentos y calafateada con brea por dentro y por fuera.</p>
+
+                    <h4 class="font-serif font-bold text-xl text-bibleBlue-800 border-b border-parchment-300 pb-2 pt-2">2. El Gran Diluvio y la Travesía</h4>
+                    <p>Noé obedeció todo lo que Dios le mandó. Introdujo en el arca a su esposa, sus tres hijos (Sem, Cam y Jafet) con sus esposas, y parejas de todas las especies de animales terrestres y aves. Una vez dentro, el Señor mismo cerró la puerta.</p>
+                    <p>Entonces se rompieron todas las fuentes del gran abismo y las cataratas de los cielos se abrieron. Llovió sobre la tierra durante <strong>40 días y 40 noches</strong> consecutivas, hasta que las aguas cubrieron las montañas más altas por quince codos arriba.</p>
+
+                    <h4 class="font-serif font-bold text-xl text-bibleBlue-800 border-b border-parchment-300 pb-2 pt-2">3. La Paloma, la Rama de Olivo y el Pacto del Arcoíris</h4>
+                    <p>Las aguas prevalecieron 150 días, pero Dios se acordó de Noé y envió un viento que hizo descender el nivel del agua. El arca reposó sobre los montes de Ararat. Noé soltó primero un cuervo y luego una paloma; al cabo de unos días, la paloma regresó con una <strong>rama de olivo fresca en el pico</strong>, señal de que la tierra volvía a florecer.</p>
+                    <p>Al salir del arca, Noé edificó un altar y ofreció un sacrificio de acción de gracias. Dios prometió no volver a destruir la tierra con agua y puso el <strong>arcoíris en las nubes</strong> como señal eterna de este pacto.</p>
+                `,
+                quiz: [
+                    {
+                        question: "¿De qué tipo de madera ordenó Dios construir el arca a Noé?",
+                        options: ["Madera de Cedro", "Madera de Gofer", "Madera de Olivo", "Madera de Roble"],
+                        correct: 1,
+                        explanation: "Génesis 6:14 especifica que el arca debía ser construida de madera de gofer."
+                    },
+                    {
+                        question: "¿Qué señal trajo la paloma a Noé para indicar que las aguas habían bajado?",
+                        options: ["Una rama de olivo en el pico", "Una flor de lirio", "Una espiga de trigo", "Una rama de cedro"],
+                        correct: 0,
+                        explanation: "La paloma regresó en la tarde con una hoja/rama de olivo cortada en su pico."
+                    }
+                ]
+            },
+            {
+                id: 3,
+                title: "La Torre de Babel",
+                reference: "Génesis 11:1 - 9",
+                symbol: "🔒",
+                unlocked: false,
+                completed: false,
+                summary: "Toda la tierra hablaba un solo idioma hasta que en la llanura de Sinar el orgullo pretendió tocar el cielo...",
+                content: `
+                    <div class="p-4 bg-bibleGold-500/10 rounded-2xl border-l-4 border-bibleGold-500 mb-6 font-serif text-sm sm:text-base italic text-bibleGold-800">
+                        "Y dijeron: Vamos, edifiquémonos una ciudad y una torre, cuya cúspide llegue al cielo; y hagámonos un nombre, por si fuéramos esparcidos sobre la faz de toda la tierra."
+                    </div>
+
+                    <h4 class="font-serif font-bold text-xl text-bibleBlue-800 border-b border-parchment-300 pb-2">1. Una Sola Lengua y la Llanura de Sinar</h4>
+                    <p>Después del Diluvio, los descendientes de Noé poblaron nuevamente la tierra. En aquel tiempo, toda la tierra tenía un mismo lenguaje y las mismas palabras. Al emigrar hacia el oriente, los hombres encontraron una fértil llanura en la tierra de Sinar y decidieron asentarse allí.</p>
+
+                    <h4 class="font-serif font-bold text-xl text-bibleBlue-800 border-b border-parchment-300 pb-2 pt-2">2. El Plan del Orgullo Humano</h4>
+                    <p>En lugar de llenar toda la tierra como Dios había mandado, los hombres se dijeron unos a otros: <em>«Vamos, hagamos ladrillo y cocámoslo con fuego»</em>. El ladrillo les sirvió como piedra y el asfalto como mezcla. Movidos por la soberbia, intentaron edificar una gigantesca torre cuya cúspide alcanzara las nubes para proclamar su propia gloria humana.</p>
+
+                    <h4 class="font-serif font-bold text-xl text-bibleBlue-800 border-b border-parchment-300 pb-2 pt-2">3. La Confusión de las Lenguas y la Dispersión</h4>
+                    <p>El Señor descendió para ver la ciudad y la torre que edificaban los hijos de los hombres. Observando que unidos en el orgullo nada les impediría rebelarse, Dios dijo: <em>«Ahora, pues, descendamos, y confundamos allí su lengua, para que ninguno entienda el habla de su compañero»</em>.</p>
+                    <p>Al no poder entenderse entre sí, dejaron de edificar la ciudad. Por esta razón, el lugar fue llamado <strong>Babel</strong> (que significa 'confusión'), y desde allí el Señor los esparció por toda la superficie de la tierra.</p>
+                `,
+                quiz: [
+                    {
+                        question: "¿Por qué llamaron a la edificación 'Babel'?",
+                        options: ["Porque significaba 'Gran Torre'", "Porque allí el Señor confundió el lenguaje de toda la tierra", "Porque fue hecha de asfalto", "Porque estaba en una montaña alta"],
+                        correct: 1,
+                        explanation: "Génesis 11:9 explica que fue llamada Babel porque allí el Señor confundió el lenguaje humano."
+                    }
+                ]
+            },
+            {
+                id: 4,
+                title: "Abraham e Isaac",
+                reference: "Génesis 22:1 - 19",
+                symbol: "🔒",
+                unlocked: false,
+                completed: false,
+                summary: "Dios prueba la fe inquebrantable del padre de la fe en el monte Moriah con su único hijo prometido...",
+                content: `
+                    <div class="p-4 bg-bibleGold-500/10 rounded-2xl border-l-4 border-bibleGold-500 mb-6 font-serif text-sm sm:text-base italic text-bibleGold-800">
+                        "Y Dios dijo: Toma ahora a tu hijo, tu único, Isaac, a quien amas, y vete a tierra de Moriah, y ofrécelo allí en holocausto sobre uno de los montes que yo te diré."
+                    </div>
+
+                    <h4 class="font-serif font-bold text-xl text-bibleBlue-800 border-b border-parchment-300 pb-2">1. El Hijo de la Promesa</h4>
+                    <p>Dios llamó a Abraham y le prometió que sus descendientes serían como las estrellas del cielo y la arena del mar. A pesar de que Abraham y su esposa Sara eran muy ancianos, Dios cumplió su promesa dándoles a su hijo Isaac en su vejez.</p>
+
+                    <h4 class="font-serif font-bold text-xl text-bibleBlue-800 border-b border-parchment-300 pb-2 pt-2">2. La Prueba de Fe en la Tierra de Moriah</h4>
+                    <p>Años más tarde, Dios quiso probar la obediencia de Abraham. Le pidió que llevara a Isaac al monte Moriah para ofrecerlo en sacrificio. Con dolor pero con fe absoluta en que Dios podía incluso resucitar a los muertos, Abraham se levantó muy de mañana, cortó leña y viajó durante tres días hacia el monte señalado.</p>
+                    <p>En el camino, Isaac le preguntó a su padre: <em>«Padre mío... aquí están el fuego y la leña, pero ¿dónde está el cordero para el holocausto?»</em>. Abraham respondió con profética calma: <em>«Dios se proveerá de cordero para el holocausto, hijo mío»</em>.</p>
+
+                    <h4 class="font-serif font-bold text-xl text-bibleBlue-800 border-b border-parchment-300 pb-2 pt-2">3. El Ángel del Señor y el Carnero en el Matorral</h4>
+                    <p>Cuando llegaron al lugar, Abraham edificó el altar, acomodó la leña y ató a su hijo Isaac. Justo cuando extendió su mano para tomar el cuchillo, el ángel de Jehová lo llamó desde el cielo diciendo: <em>«¡Abraham, Abraham! No extiendas tu mano sobre el muchacho, ni le hagas nada; porque ya conozco que temes a Dios»</em>.</p>
+                    <p>Abraham alzó la vista y vio a sus espaldas un carnero trabado por los cuernos en un matorral. Tomó el carnero y lo ofreció en holocausto en lugar de su hijo, llamando a aquel lugar <strong>«Jehová Jireh»</strong> (El Señor Proveerá).</p>
+                `,
+                quiz: [
+                    {
+                        question: "¿Cómo respondió Abraham cuando Isaac le preguntó dónde estaba el cordero?",
+                        options: ["Le dijo que lo habían olvidado", "Le respondió: 'Dios se proveerá de cordero, hijo mío'", "Le dijo que buscarían en el pueblo", "No le respondió nada"],
+                        correct: 1,
+                        explanation: "En Génesis 22:8, Abraham confió proféticamente en que Dios proveería el cordero."
+                    }
+                ]
+            },
+            {
+                id: 5,
+                title: "Moisés y el Éxodo",
+                reference: "Éxodo 1:1 - 14:31",
+                symbol: "🔒",
+                unlocked: false,
+                completed: false,
+                summary: "La opresión de Israel en Egipto, el llamado en la zarza ardiendo y el milagro del Mar Rojo...",
+                content: `
+                    <div class="p-4 bg-bibleGold-500/10 rounded-2xl border-l-4 border-bibleGold-500 mb-6 font-serif text-sm sm:text-base italic text-bibleGold-800">
+                        "Y Jehová dijo: Bien he visto la aflicción de mi pueblo que está en Egipto... y he descendido para librarlos de mano de los egipcios..."
+                    </div>
+
+                    <h4 class="font-serif font-bold text-xl text-bibleBlue-800 border-b border-parchment-300 pb-2">1. La Esclavitud y el Nacimiento de Moisés</h4>
+                    <p>Los hijos de Israel se multiplicaron enormemente en Egipto, lo que atemorizó al nuevo Faraón, quien los sometió a dura servidumbre e impuso el mandato de arrojar al río Nilo a todo hijo varón recién nacido. Una madre hebrea escondió a su bebé en una cesta de juncos calafateada sobre el río; la hija del Faraón halló al niño y lo adoptó llamándolo <strong>Moisés</strong> (extraído de las aguas).</p>
+
+                    <h4 class="font-serif font-bold text-xl text-bibleBlue-800 border-b border-parchment-300 pb-2 pt-2">2. La Zarza Ardiendo y las Diez Plagas</h4>
+                    <p>Años después, siendo pastor en el monte Horeb, Moisés vio una zarza que ardía en fuego sin consumirse. Dios le habló desde la llama encomendándole volver ante el Faraón para exigir la libertad de su pueblo.</p>
+                    <p>Ante la terquedad del monarca egipcio, Dios envió diez poderosas plagas sobre Egipto. Tras la décima plaga (la Pascua), Faraón dejó ir a los israelitas hacia el desierto.</p>
+
+                    <h4 class="font-serif font-bold text-xl text-bibleBlue-800 border-b border-parchment-300 pb-2 pt-2">3. La División del Mar Rojo y la Gran Liberación</h4>
+                    <p>Pronto el Faraón se arrepintió y persiguió al pueblo con 600 carros escogidos, acorralándolos frente al Mar Rojo. El pueblo sintió temor, pero Moisés les dijo: <em>«No temáis; estad firmes, y ved la salvación que Jehová hará hoy por vosotros»</em>.</p>
+                    <p>Moisés extendió su vara sobre el mar, y el Señor hizo que un fuerte viento del oriente dividiera las aguas, formando un muro a la derecha y a la izquierda. Los israelitas cruzaron en seco. Cuando el ejército egipcio intentó perseguirlos, las aguas volvieron a su cauce, demostrando el poder liberador del Dios todopoderoso.</p>
+                `,
+                quiz: [
+                    {
+                        question: "¿Cómo se le manifestó el Señor a Moisés en el monte Horeb?",
+                        options: ["En un trueno en el cielo", "En una zarza que ardía sin consumirse", "En un sueño nocturno", "En una columna de humo"],
+                        correct: 1,
+                        explanation: "Éxodo 3:2 narra la aparición del ángel de Jehová en una llama de fuego en medio de una zarza que no se consumía."
+                    }
+                ]
+            }
+        ];
+
+        let storiesState = [];
+        let activeStoryId = 1;
+
+        // Initialize App on DOM Load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSavedProgress();
+            renderStoriesList();
+            updateHeroCard();
+            updateHeaderProgress();
+        });
+
+        function loadSavedProgress() {
+            const saved = localStorage.getItem('biblia_historias_v2');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    storiesState = BIBLE_STORIES.map(story => {
+                        const match = parsed.find(p => p.id === story.id);
+                        return match ? { ...story, unlocked: match.unlocked, completed: match.completed } : story;
+                    });
+                } catch (e) {
+                    storiesState = JSON.parse(JSON.stringify(BIBLE_STORIES));
+                }
+            } else {
+                storiesState = JSON.parse(JSON.stringify(BIBLE_STORIES));
+            }
+
+            // Find first unlocked & incomplete, or default to 1
+            const current = storiesState.find(s => s.unlocked && !s.completed) || storiesState[0];
+            activeStoryId = current.id;
+        }
+
+        function saveProgressToStorage() {
+            const dataToSave = storiesState.map(s => ({
+                id: s.id,
+                unlocked: s.unlocked,
+                completed: s.completed
+            }));
+            localStorage.setItem('biblia_historias_v2', JSON.stringify(dataToSave));
+        }
+
+        function renderStoriesList() {
+            const container = document.getElementById('stories-list');
+            container.innerHTML = '';
+
+            storiesState.forEach((story, index) => {
+                const isActive = story.id === activeStoryId;
+                
+                let iconSymbol = story.completed ? '<i class="fa-solid fa-circle-check text-green-600"></i>' : (story.unlocked ? '<i class="fa-solid fa-star text-bibleGold-500"></i>' : '<i class="fa-solid fa-lock text-parchment-700"></i>');
+                
+                let cardStyle = '';
+                if (story.unlocked) {
+                    cardStyle = isActive 
+                        ? 'bg-bibleGold-500/20 border-2 border-bibleGold-500 shadow-md ring-2 ring-bibleGold-400/30' 
+                        : 'bg-parchment-50 hover:bg-parchment-200/70 border border-bibleGold-500/30 text-parchment-900 cursor-pointer';
+                } else {
+                    cardStyle = 'bg-parchment-200/40 border border-parchment-300 text-parchment-700 opacity-70 cursor-not-allowed';
+                }
+
+                const item = document.createElement('div');
+                item.className = `p-4 rounded-2xl flex items-center justify-between transition-all duration-200 ${cardStyle}`;
+                item.onclick = () => selectStoryItem(story.id);
+
+                item.innerHTML = `
+                    <div class="flex items-center space-x-3.5">
+                        <span class="w-8 h-8 rounded-xl flex items-center justify-center font-serif font-bold text-xs ${story.unlocked ? 'bg-bibleGold-500/20 text-bibleGold-800 border border-bibleGold-500/30' : 'bg-parchment-300 text-parchment-700'}">
+                            ${index + 1}
+                        </span>
+                        <div>
+                            <h4 class="font-serif text-base sm:text-lg ${story.unlocked ? 'font-bold text-parchment-900' : 'font-medium text-parchment-700'}">
+                                ${story.title}
+                            </h4>
+                            <p class="text-xs text-parchment-700 line-clamp-1 font-body">${story.summary}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-lg">${iconSymbol}</span>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function updateHeroCard() {
+            const story = storiesState.find(s => s.id === activeStoryId) || storiesState[0];
+            document.getElementById('hero-story-title').innerText = story.title;
+            
+            const statusEl = document.getElementById('hero-story-status');
+            if (story.completed) {
+                statusEl.innerHTML = `<i class="fa-solid fa-circle-check text-green-600"></i> Completado (Leído)`;
+            } else if (story.unlocked) {
+                statusEl.innerHTML = `<i class="fa-solid fa-circle-play text-bibleGold-500"></i> Listo para comenzar`;
+            } else {
+                statusEl.innerHTML = `<i class="fa-solid fa-lock text-parchment-700"></i> Bloqueado`;
+            }
+        }
+
+        function updateHeaderProgress() {
+            const unlocked = storiesState.filter(s => s.unlocked).length;
+            document.getElementById('header-progress-text').innerText = `${unlocked} / ${storiesState.length}`;
+        }
+
+        function selectStoryItem(id) {
+            const story = storiesState.find(s => s.id === id);
+            if (!story) return;
+
+            if (!story.unlocked) {
+                showToast('Historia Bloqueada', `Debes completar las historias anteriores en orden para desbloquear '${story.title}'.`, 'lock');
+                return;
+            }
+
+            activeStoryId = id;
+            renderStoriesList();
+            updateHeroCard();
+        }
+
+        function startActiveStory() {
+            openReaderModal(activeStoryId);
+        }
+
+        function openReaderModal(storyId) {
+            const story = storiesState.find(s => s.id === storyId);
+            if (!story || !story.unlocked) return;
+
+            activeStoryId = storyId;
+            document.getElementById('reader-title').innerText = story.title;
+            document.getElementById('reader-subtitle').innerText = story.reference;
+            document.getElementById('reader-symbol').innerHTML = story.completed ? '<i class="fa-solid fa-check"></i>' : story.id;
+            document.getElementById('reader-body').innerHTML = story.content;
+
+            const completeBtn = document.getElementById('complete-btn');
+            if (story.completed) {
+                completeBtn.innerHTML = `<span>Releer y Continuar ✓</span>`;
+            } else {
+                completeBtn.innerHTML = `<span>Completar Lectura ✓</span>`;
+            }
+
+            openModal('reader-modal', 'reader-container');
+        }
+
+        function completeAndUnlockNext() {
+            const index = storiesState.findIndex(s => s.id === activeStoryId);
+            if (index !== -1) {
+                storiesState[index].completed = true;
+
+                // Unlock next chapter
+                if (index + 1 < storiesState.length) {
+                    storiesState[index + 1].unlocked = true;
+                }
+
+                saveProgressToStorage();
+                renderStoriesList();
+                updateHeroCard();
+                updateHeaderProgress();
+                closeModal('reader-modal');
+
+                if (index + 1 < storiesState.length) {
+                    showToast('¡Felicitaciones!', `Has completado el capítulo. Se ha desbloqueado '${storiesState[index + 1].title}'.`, 'success');
+                    activeStoryId = storiesState[index + 1].id;
+                    renderStoriesList();
+                    updateHeroCard();
+                } else {
+                    showToast('¡Felicidades Total!', 'Has completado todas las historias de la Biblia disponibles.', 'success');
+                }
+            }
+        }
+
+        function openQuizFromReader() {
+            closeModal('reader-modal');
+            openQuizModalForStory(activeStoryId);
+        }
+
+        function openGlobalQuiz() {
+            openQuizModalForStory(activeStoryId);
+        }
+
+        function openQuizModalForStory(storyId) {
+            const story = storiesState.find(s => s.id === storyId);
+            if (!story) return;
+
+            document.getElementById('quiz-header-title').innerText = `Quiz: ${story.title}`;
+            const quizBody = document.getElementById('quiz-body');
+
+            if (!story.quiz || story.quiz.length === 0) {
+                quizBody.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fa-solid fa-check-double text-4xl text-bibleGold-500 mb-3"></i>
+                        <p class="font-serif font-bold text-lg text-parchment-900">¡Has completado esta lección!</p>
+                        <p class="text-sm text-parchment-700 font-body">No hay más preguntas para este capítulo.</p>
+                    </div>
+                `;
+            } else {
+                let html = '';
+                story.quiz.forEach((q, qIdx) => {
+                    html += `
+                        <div class="bg-parchment-100 p-5 rounded-2xl border border-bibleGold-500/30 shadow-sm space-y-3">
+                            <p class="font-serif font-bold text-base sm:text-lg text-parchment-900 flex items-start gap-2">
+                                <span class="bg-bibleGold-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0 mt-0.5">${qIdx + 1}</span>
+                                <span>${q.question}</span>
+                            </p>
+
+                            <div class="space-y-2 pt-1">
+                                ${q.options.map((opt, oIdx) => `
+                                    <button id="quiz-opt-${qIdx}-${oIdx}" onclick="evaluateAnswer(${storyId}, ${qIdx}, ${oIdx})" class="w-full text-left p-3.5 rounded-xl border border-parchment-300 bg-parchment-50 hover:bg-parchment-200 text-parchment-900 font-body text-sm sm:text-base transition-all flex items-center justify-between">
+                                        <span>${opt}</span>
+                                        <i id="quiz-icon-${qIdx}-${oIdx}" class="fa-regular fa-circle text-parchment-700"></i>
+                                    </button>
+                                `).join('')}
+                            </div>
+
+                            <div id="quiz-feedback-${qIdx}" class="hidden p-4 rounded-xl text-xs sm:text-sm font-body leading-relaxed border"></div>
+                        </div>
+                    `;
+                });
+                quizBody.innerHTML = html;
+            }
+
+            document.getElementById('quiz-score-badge').innerText = `Evaluación: ${story.title}`;
+            openModal('quiz-modal', 'quiz-container');
+        }
+
+        function evaluateAnswer(storyId, qIdx, oIdx) {
+            const story = storiesState.find(s => s.id === storyId);
+            if (!story || !story.quiz[qIdx]) return;
+
+            const question = story.quiz[qIdx];
+            const feedbackBox = document.getElementById(`quiz-feedback-${qIdx}`);
+
+            // Disable all options for this question
+            question.options.forEach((_, optIndex) => {
+                const btn = document.getElementById(`quiz-opt-${qIdx}-${optIndex}`);
+                if (btn) btn.disabled = true;
+            });
+
+            const selectedBtn = document.getElementById(`quiz-opt-${qIdx}-${oIdx}`);
+            const selectedIcon = document.getElementById(`quiz-icon-${qIdx}-${oIdx}`);
+
+            if (oIdx === question.correct) {
+                selectedBtn.className = "w-full text-left p-3.5 rounded-xl border-2 border-green-600 bg-green-50 text-green-900 font-body text-sm sm:text-base font-bold flex items-center justify-between";
+                selectedIcon.className = "fa-solid fa-circle-check text-green-600 text-lg";
+
+                feedbackBox.className = "p-4 rounded-xl text-xs sm:text-sm font-body leading-relaxed border border-green-300 bg-green-50 text-green-900";
+                feedbackBox.innerHTML = `<strong>¡Respuesta Correcta!</strong> ${question.explanation}`;
+            } else {
+                selectedBtn.className = "w-full text-left p-3.5 rounded-xl border-2 border-red-500 bg-red-50 text-red-900 font-body text-sm sm:text-base flex items-center justify-between";
+                selectedIcon.className = "fa-solid fa-circle-xmark text-red-600 text-lg";
+
+                // Highlight correct option
+                const correctBtn = document.getElementById(`quiz-opt-${qIdx}-${question.correct}`);
+                const correctIcon = document.getElementById(`quiz-icon-${qIdx}-${question.correct}`);
+                if (correctBtn) correctBtn.className = "w-full text-left p-3.5 rounded-xl border-2 border-green-600 bg-green-50 text-green-900 font-body text-sm sm:text-base font-bold flex items-center justify-between";
+                if (correctIcon) correctIcon.className = "fa-solid fa-circle-check text-green-600 text-lg";
+
+                feedbackBox.className = "p-4 rounded-xl text-xs sm:text-sm font-body leading-relaxed border border-red-300 bg-red-50 text-red-900";
+                feedbackBox.innerHTML = `<strong>Respuesta Incorrecta.</strong> ${question.explanation}`;
+            }
+
+            feedbackBox.classList.remove('hidden');
+        }
+
+        function openModal(modalId, containerId) {
+            const modal = document.getElementById(modalId);
+            const container = document.getElementById(containerId);
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                if (container) {
+                    container.classList.remove('scale-95');
+                    container.classList.add('scale-100');
+                }
+            }, 10);
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            
+            const isOpen = !sidebar.classList.contains('-translate-x-full');
+            if (isOpen) {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('opacity-0');
+                setTimeout(() => backdrop.classList.add('hidden'), 300);
+            } else {
+                backdrop.classList.remove('hidden');
+                setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+                sidebar.classList.remove('-translate-x-full');
+            }
+        }
+
+        function openAboutModal() {
+            openModal('about-modal');
+        }
+
+        function confirmResetProgress() {
+            openModal('confirm-modal');
+        }
+
+        function executeResetProgress() {
+            localStorage.removeItem('biblia_historias_v2');
+            closeModal('confirm-modal');
+            loadSavedProgress();
+            renderStoriesList();
+            updateHeroCard();
+            updateHeaderProgress();
+            showToast('Progreso Reiniciado', 'Se ha restablecido la lectura y los capítulos vuelven al inicio.', 'info');
+        }
+
+        function showToast(title, message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let iconClass = type === 'success' ? 'fa-circle-check text-green-500' : (type === 'lock' ? 'fa-lock text-amber-500' : 'fa-circle-info text-bibleBlue-700');
+
+            toast.className = "pointer-events-auto bg-parchment-900 text-white p-4 rounded-2xl shadow-2xl border border-bibleGold-500 flex items-start space-x-3 transition-all duration-300 transform translate-y-4 opacity-0";
+            toast.innerHTML = `
+                <i class="fa-solid ${iconClass} text-xl pt-0.5"></i>
+                <div class="flex-1">
+                    <h4 class="font-serif font-bold text-bibleGold-400 text-sm">${title}</h4>
+                    <p class="text-xs text-parchment-200 mt-0.5 font-body leading-relaxed">${message}</p>
+                </div>
+            `;
+
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
